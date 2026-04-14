@@ -30,9 +30,9 @@ export function WhatIsSelfieBox({ content }: { content: SiteContent['what'] }) {
             return (
               <div
                 key={index}
-                className="backdrop-blur-sm bg-gradient-to-br from-gray-50/80 to-white/80 p-8 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-white/50"
+                className="backdrop-blur-sm bg-gradient-to-br from-gray-50/80 to-white/80 p-8 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-white/50 text-center"
               >
-                <div className="w-14 h-14 bg-cyan-100 rounded-xl flex items-center justify-center mb-6">
+                <div className="w-14 h-14 bg-cyan-100 rounded-xl flex items-center justify-center mb-6 mx-auto">
                   <Icon className="w-7 h-7 text-cyan-600" />
                 </div>
                 <h3 className="text-xl !font-semibold text-gray-900 mb-3">
