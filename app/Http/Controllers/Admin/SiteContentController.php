@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateSiteContentRequest;
 use App\Models\SiteContent;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -17,6 +19,22 @@ class SiteContentController extends Controller
     {
         return Inertia::render('Admin/Content/Edit', [
             'content' => SiteContent::singleton()->resolvedContent(),
+        ]);
+    }
+
+    public function storeImage(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'image' => ['required', 'image', 'max:8192'],
+        ]);
+
+        /** @var UploadedFile $image */
+        $image = $validated['image'];
+        $path = $image->store('site-content', 'public');
+
+        return response()->json([
+            'path' => $path,
+            'url' => Storage::disk('public')->url($path),
         ]);
     }
 

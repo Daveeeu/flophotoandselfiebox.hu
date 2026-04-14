@@ -1,6 +1,7 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, useForm } from '@inertiajs/react';
-import type { ChangeEvent, FormEvent, ReactNode } from 'react';
+import axios from 'axios';
+import { useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
 import type { SiteContent } from '../../../../../src/app/site-content';
 
 type EditContentProps = {
@@ -16,6 +17,11 @@ type ContentFormData = {
 };
 
 export default function EditContent({ content }: EditContentProps) {
+    const [uploadingBackgroundImages, setUploadingBackgroundImages] = useState<boolean[]>(
+        content.backgrounds.items.map(() => false),
+    );
+    const [backgroundUploadErrors, setBackgroundUploadErrors] = useState<Record<number, string>>({});
+
     const form = useForm<ContentFormData>({
         content,
         hero_image: null,
@@ -23,6 +29,7 @@ export default function EditContent({ content }: EditContentProps) {
         background_images: content.backgrounds.items.map(() => null),
         _method: 'put',
     });
+    const isUploadingBackgroundImage = uploadingBackgroundImages.some(Boolean);
 
     const updateContent = (path: Array<string | number>, value: unknown) => {
         const next = structuredClone(form.data.content);
@@ -56,6 +63,80 @@ export default function EditContent({ content }: EditContentProps) {
             ...data,
             background_images: next,
         }));
+    };
+
+    const updateBackgroundItemImage = (index: number, path: string, url: string) => {
+        const next = structuredClone(form.data.content);
+
+        next.backgrounds.items[index].image_path = path;
+        next.backgrounds.items[index].image_url = url;
+
+        form.setData((data) => ({
+            ...data,
+            content: next,
+        }));
+    };
+
+    const uploadBackgroundImage = async (index: number, file: File | null) => {
+        if (!file) {
+            updateBackgroundImage(index, null);
+            return;
+        }
+
+        updateBackgroundImage(index, file);
+        setBackgroundUploadErrors((errors) => {
+            const next = { ...errors };
+            delete next[index];
+            return next;
+        });
+        setUploadingBackgroundImages((statuses) => {
+            const next = [...statuses];
+            next[index] = true;
+            return next;
+        });
+
+        const payload = new FormData();
+        payload.append('image', file);
+
+        try {
+            const response = await axios.post<{ path: string; url: string }>(
+                route('admin.content.images.store'),
+                payload,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                },
+            );
+
+            updateBackgroundItemImage(index, response.data.path, response.data.url);
+            updateBackgroundImage(index, null);
+        } catch (error) {
+            let message = 'A kép feltöltése nem sikerült. Ellenőrizd a fájlt és próbáld újra.';
+
+            if (axios.isAxiosError(error)) {
+                const validationMessage = error.response?.data?.errors?.image?.[0];
+                const responseMessage = error.response?.data?.message;
+
+                if (typeof validationMessage === 'string') {
+                    message = validationMessage;
+                } else if (typeof responseMessage === 'string') {
+                    message = responseMessage;
+                }
+            }
+
+            setBackgroundUploadErrors((errors) => ({
+                ...errors,
+                [index]: message,
+            }));
+            updateBackgroundImage(index, null);
+        } finally {
+            setUploadingBackgroundImages((statuses) => {
+                const next = [...statuses];
+                next[index] = false;
+                return next;
+            });
+        }
     };
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -627,7 +708,9 @@ export default function EditContent({ content }: EditContentProps) {
                                         label="Új háttérkép feltöltése"
                                         previewUrl={item.image_url || item.image_path}
                                         file={form.data.background_images[index]}
-                                        onChange={(file) => updateBackgroundImage(index, file)}
+                                        isUploading={uploadingBackgroundImages[index] ?? false}
+                                        error={backgroundUploadErrors[index]}
+                                        onChange={(file) => void uploadBackgroundImage(index, file)}
                                     />
                                 </div>
                             </div>
@@ -844,10 +927,14 @@ export default function EditContent({ content }: EditContentProps) {
                 <div className="flex justify-end">
                     <button
                         type="submit"
-                        disabled={form.processing}
+                        disabled={form.processing || isUploadingBackgroundImage}
                         className="rounded-xl bg-cyan-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        {form.processing ? 'Mentés...' : 'Tartalom mentése'}
+                        {form.processing
+                            ? 'Mentés...'
+                            : isUploadingBackgroundImage
+                                ? 'Kép feltöltése...'
+                                : 'Tartalom mentése'}
                     </button>
                 </div>
             </form>
@@ -959,11 +1046,15 @@ function ImageUploadCard({
     label,
     previewUrl,
     file,
+    isUploading = false,
+    error,
     onChange,
 }: {
     label: string;
     previewUrl?: string | null;
     file: File | null;
+    isUploading?: boolean;
+    error?: string;
     onChange: (file: File | null) => void;
 }) {
     const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -984,15 +1075,22 @@ function ImageUploadCard({
             </div>
 
             <label className="mt-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-700 transition hover:border-cyan-400">
-                <span>Új kép kiválasztása</span>
+                <span>{isUploading ? 'Feltöltés folyamatban...' : 'Új kép kiválasztása'}</span>
                 <span className="text-xs text-slate-500">
-                    PNG, JPG vagy WEBP, max 8 MB
+                    PNG, JPG vagy WEBP, max 8 MB. Kiválasztás után azonnal feltöltődik.
                 </span>
                 <span className="text-xs text-cyan-600">
-                    {file?.name || 'Még nincs új fájl kiválasztva'}
+                    {isUploading ? file?.name : file ? `${file.name} feltöltve` : 'Még nincs új fájl kiválasztva'}
                 </span>
-                <input type="file" accept="image/*" className="hidden" onChange={handleChange} />
+                <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={isUploading}
+                    onChange={handleChange}
+                />
             </label>
+            {error ? <p className="mt-2 text-xs text-rose-600">{error}</p> : null}
         </div>
     );
 }

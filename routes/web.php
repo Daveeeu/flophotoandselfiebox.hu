@@ -23,6 +23,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::get('/content', [SiteContentController::class, 'edit'])->name('content.edit');
     Route::put('/content', [SiteContentController::class, 'update'])->name('content.update');
+    Route::post('/content/images', [SiteContentController::class, 'storeImage'])->name('content.images.store');
     Route::get('/contacts', [AdminContactInquiryController::class, 'index'])->name('contacts.index');
     Route::patch('/contacts/{contactInquiry}', [AdminContactInquiryController::class, 'update'])->name('contacts.update');
     Route::get('/bookings', [AdminBookingRequestController::class, 'index'])->name('bookings.index');
