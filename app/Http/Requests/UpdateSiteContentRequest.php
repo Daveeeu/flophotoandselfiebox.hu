@@ -93,7 +93,7 @@ class UpdateSiteContentRequest extends FormRequest
             'content.backgrounds.description' => ['required', 'string', 'max:240'],
             'content.backgrounds.cta_text' => ['required', 'string', 'max:180'],
             'content.backgrounds.cta_button_label' => ['required', 'string', 'max:120'],
-            'content.backgrounds.items' => ['required', 'array', 'size:6'],
+            'content.backgrounds.items' => ['required', 'array', 'min:1'],
             'content.backgrounds.items.*.label' => ['required', 'string', 'max:120'],
             'content.backgrounds.items.*.image_path' => ['nullable', 'string', 'max:2000'],
             'background_images' => ['nullable', 'array'],

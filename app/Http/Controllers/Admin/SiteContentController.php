@@ -57,12 +57,14 @@ class SiteContentController extends Controller
         );
 
         foreach ($content['backgrounds']['items'] as $index => $item) {
-            $content['backgrounds']['items'][$index]['image_path'] = $this->resolveImagePath(
+            $content['backgrounds']['items'][$index]['image_path'] = $this->resolveBackgroundImagePath(
                 $request->file("background_images.{$index}"),
                 $item['image_path'] ?? null,
                 data_get($currentContent, "backgrounds.items.{$index}.image_path"),
             );
         }
+
+        $this->deleteRemovedBackgroundImages($currentContent, $content);
 
         $siteContent->update([
             'content' => $content,
@@ -87,6 +89,39 @@ class SiteContentController extends Controller
                 $this->deleteLocalFile($existingPath);
             }
 
+            return $incomingPath;
+        }
+
+        return (string) $existingPath;
+    }
+
+    private function deleteRemovedBackgroundImages(array $currentContent, array $incomingContent): void
+    {
+        $currentPaths = collect(data_get($currentContent, 'backgrounds.items', []))
+            ->pluck('image_path')
+            ->filter()
+            ->all();
+
+        $incomingPaths = collect(data_get($incomingContent, 'backgrounds.items', []))
+            ->pluck('image_path')
+            ->filter()
+            ->all();
+
+        collect($currentPaths)
+            ->diff($incomingPaths)
+            ->each(fn (string $path) => $this->deleteLocalFile($path));
+    }
+
+    private function resolveBackgroundImagePath(
+        ?UploadedFile $uploadedFile,
+        ?string $incomingPath,
+        ?string $existingPath,
+    ): string {
+        if ($uploadedFile instanceof UploadedFile) {
+            return $uploadedFile->store('site-content', 'public');
+        }
+
+        if (filled($incomingPath)) {
             return $incomingPath;
         }
 

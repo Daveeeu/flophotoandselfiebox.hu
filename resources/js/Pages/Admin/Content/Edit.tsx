@@ -65,6 +65,52 @@ export default function EditContent({ content }: EditContentProps) {
         }));
     };
 
+    const addBackgroundItem = () => {
+        const next = structuredClone(form.data.content);
+
+        next.backgrounds.items.push({
+            label: '',
+            image_path: '',
+            image_url: null,
+        });
+
+        form.setData((data) => ({
+            ...data,
+            content: next,
+            background_images: [...data.background_images, null],
+        }));
+        setUploadingBackgroundImages((statuses) => [...statuses, false]);
+    };
+
+    const removeBackgroundItem = (index: number) => {
+        if (form.data.content.backgrounds.items.length <= 1) {
+            return;
+        }
+
+        const next = structuredClone(form.data.content);
+        next.backgrounds.items.splice(index, 1);
+
+        form.setData((data) => ({
+            ...data,
+            content: next,
+            background_images: data.background_images.filter((_, itemIndex) => itemIndex !== index),
+        }));
+        setUploadingBackgroundImages((statuses) =>
+            statuses.filter((_, itemIndex) => itemIndex !== index),
+        );
+        setBackgroundUploadErrors((errors) =>
+            Object.fromEntries(
+                Object.entries(errors)
+                    .filter(([key]) => Number(key) !== index)
+                    .map(([key, value]) => {
+                        const numericKey = Number(key);
+
+                        return [numericKey > index ? numericKey - 1 : numericKey, value];
+                    }),
+            ),
+        );
+    };
+
     const updateBackgroundItemImage = (index: number, path: string, url: string) => {
         const next = structuredClone(form.data.content);
 
@@ -651,7 +697,16 @@ export default function EditContent({ content }: EditContentProps) {
 
                 <SectionCard
                     title="Háttér szekció"
-                    description="A szekció szövegei és a hat háttérkép egyenként szerkeszthető."
+                    description="A szekció szövegei és a háttérképek egyenként szerkeszthetők."
+                    action={
+                        <button
+                            type="button"
+                            onClick={addBackgroundItem}
+                            className="rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm font-medium text-cyan-700 transition hover:border-cyan-400 hover:bg-cyan-100"
+                        >
+                            Új háttér hozzáadása
+                        </button>
+                    }
                 >
                     <div className="grid gap-5 md:grid-cols-2">
                         <TextField
@@ -683,9 +738,19 @@ export default function EditContent({ content }: EditContentProps) {
                     <div className="mt-5 grid gap-5 xl:grid-cols-2">
                         {form.data.content.backgrounds.items.map((item, index) => (
                             <div key={index} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                                <p className="mb-4 text-xs uppercase tracking-[0.28em] text-slate-500">
-                                    Háttér {index + 1}
-                                </p>
+                                <div className="mb-4 flex items-center justify-between gap-3">
+                                    <p className="text-xs uppercase tracking-[0.28em] text-slate-500">
+                                        Háttér {index + 1}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        disabled={form.data.content.backgrounds.items.length <= 1}
+                                        onClick={() => removeBackgroundItem(index)}
+                                        className="rounded-lg border border-rose-200 bg-white px-3 py-2 text-xs font-medium text-rose-600 transition hover:border-rose-300 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                    >
+                                        Törlés
+                                    </button>
+                                </div>
                                 <div className="space-y-4">
                                     <TextField
                                         label="Megnevezés"
