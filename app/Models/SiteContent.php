@@ -257,7 +257,14 @@ class SiteContent extends Model
 
     public function mergedContent(): array
     {
-        return array_replace_recursive(static::defaultContent(), $this->content ?? []);
+        $content = $this->content ?? [];
+        $mergedContent = array_replace_recursive(static::defaultContent(), $content);
+
+        if (array_key_exists('items', data_get($content, 'backgrounds', []))) {
+            $mergedContent['backgrounds']['items'] = data_get($content, 'backgrounds.items', []);
+        }
+
+        return $mergedContent;
     }
 
     public function resolvedContent(): array
