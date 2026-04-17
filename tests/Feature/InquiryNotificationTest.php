@@ -2,8 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Mail\BookingRequestConfirmation;
 use App\Mail\BookingRequestReceived;
+use App\Mail\ContactInquiryConfirmation;
 use App\Mail\ContactInquiryReceived;
+use App\Models\BookingRequest;
+use App\Models\ContactInquiry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -12,7 +16,7 @@ class InquiryNotificationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_contact_form_sends_admin_notification_email(): void
+    public function test_contact_form_sends_admin_and_customer_emails(): void
     {
         Mail::fake();
         config(['mail.notifications.to.address' => 'info@jandldavid.hu']);
@@ -30,9 +34,14 @@ class InquiryNotificationTest extends TestCase
                 && $mail->inquiry->email === 'teszt@example.com'
                 && $mail->inquiry->subject === 'Ajánlatkérés';
         });
+
+        Mail::assertSent(ContactInquiryConfirmation::class, function (ContactInquiryConfirmation $mail) {
+            return $mail->hasTo('teszt@example.com')
+                && $mail->inquiry->name === 'Teszt Elek';
+        });
     }
 
-    public function test_booking_form_sends_admin_notification_email(): void
+    public function test_booking_form_sends_admin_and_customer_emails(): void
     {
         Mail::fake();
         config(['mail.notifications.to.address' => 'info@jandldavid.hu']);
@@ -55,5 +64,38 @@ class InquiryNotificationTest extends TestCase
                 && $mail->booking->email === 'teszt@example.com'
                 && $mail->booking->event_type === 'Esküvő';
         });
+
+        Mail::assertSent(BookingRequestConfirmation::class, function (BookingRequestConfirmation $mail) {
+            return $mail->hasTo('teszt@example.com')
+                && $mail->booking->name === 'Teszt Elek';
+        });
+    }
+
+    public function test_customer_confirmation_templates_render(): void
+    {
+        $inquiry = ContactInquiry::query()->create([
+            'name' => 'Teszt Elek',
+            'email' => 'teszt@example.com',
+            'subject' => 'Ajánlatkérés',
+            'message' => 'Szeretnék ajánlatot kérni.',
+            'status' => 'new',
+        ]);
+        $booking = BookingRequest::query()->create([
+            'name' => 'Teszt Elek',
+            'email' => 'teszt@example.com',
+            'event_type' => 'Esküvő',
+            'event_date' => now()->addDay()->toDateString(),
+            'event_location' => 'Szerencs',
+            'status' => 'new',
+        ]);
+
+        $this->assertStringContainsString(
+            'Megkaptuk az üzenetedet',
+            (new ContactInquiryConfirmation($inquiry))->render(),
+        );
+        $this->assertStringContainsString(
+            'Megkaptuk a foglalási igényedet',
+            (new BookingRequestConfirmation($booking))->render(),
+        );
     }
 }

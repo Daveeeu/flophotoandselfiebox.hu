@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBookingRequest;
+use App\Mail\BookingRequestConfirmation;
 use App\Mail\BookingRequestReceived;
 use App\Models\BookingRequest;
 use Illuminate\Http\RedirectResponse;
@@ -22,6 +23,7 @@ class BookingRequestController extends Controller
         ]);
 
         $this->sendNotification($booking);
+        $this->sendConfirmation($booking);
 
         return back()->with('success', 'A foglalási igényt rögzítettük, hamarosan visszajelzünk.');
     }
@@ -39,6 +41,19 @@ class BookingRequestController extends Controller
                 ->send(new BookingRequestReceived($booking));
         } catch (Throwable $exception) {
             Log::error('Booking request notification email failed.', [
+                'booking_request_id' => $booking->id,
+                'exception' => $exception,
+            ]);
+        }
+    }
+
+    private function sendConfirmation(BookingRequest $booking): void
+    {
+        try {
+            Mail::to($booking->email, $booking->name)
+                ->send(new BookingRequestConfirmation($booking));
+        } catch (Throwable $exception) {
+            Log::error('Booking request confirmation email failed.', [
                 'booking_request_id' => $booking->id,
                 'exception' => $exception,
             ]);

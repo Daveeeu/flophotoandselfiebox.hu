@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreContactInquiryRequest;
+use App\Mail\ContactInquiryConfirmation;
 use App\Mail\ContactInquiryReceived;
 use App\Models\ContactInquiry;
 use Illuminate\Http\RedirectResponse;
@@ -21,6 +22,7 @@ class ContactInquiryController extends Controller
         ]);
 
         $this->sendNotification($inquiry);
+        $this->sendConfirmation($inquiry);
 
         return back()->with('success', 'Köszönjük az üzenetet, hamarosan jelentkezünk.');
     }
@@ -38,6 +40,19 @@ class ContactInquiryController extends Controller
                 ->send(new ContactInquiryReceived($inquiry));
         } catch (Throwable $exception) {
             Log::error('Contact inquiry notification email failed.', [
+                'contact_inquiry_id' => $inquiry->id,
+                'exception' => $exception,
+            ]);
+        }
+    }
+
+    private function sendConfirmation(ContactInquiry $inquiry): void
+    {
+        try {
+            Mail::to($inquiry->email, $inquiry->name)
+                ->send(new ContactInquiryConfirmation($inquiry));
+        } catch (Throwable $exception) {
+            Log::error('Contact inquiry confirmation email failed.', [
                 'contact_inquiry_id' => $inquiry->id,
                 'exception' => $exception,
             ]);
