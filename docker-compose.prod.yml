@@ -21,7 +21,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
-      - traefik.http.routers.flophoto.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.flophoto.rule=Host(`${APP_DOMAIN}`) || Host(`www.${APP_DOMAIN}`)
       - traefik.http.routers.flophoto.entrypoints=websecure
       - traefik.http.routers.flophoto.tls.certresolver=letsencrypt
       - traefik.http.services.flophoto.loadbalancer.server.port=80
