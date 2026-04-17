@@ -12,7 +12,7 @@
 
             $seo = data_get($siteContent, 'seo', []);
             $brandName = trim(data_get($siteContent, 'header.brand_text', 'Flo').data_get($siteContent, 'header.brand_accent', 'photo'));
-            $seoTitle = data_get($seo, 'meta_title', config('app.name', 'Laravel'));
+            $seoTitle = data_get($seo, 'meta_title', config('app.name', 'FloPhoto Selfiebox'));
             $metaDescription = data_get($seo, 'meta_description');
             $metaKeywords = data_get($seo, 'meta_keywords');
             $ogTitle = data_get($seo, 'og_title', $seoTitle);
