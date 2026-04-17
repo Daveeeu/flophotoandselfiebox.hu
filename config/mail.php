@@ -115,4 +115,11 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    'notifications' => [
+        'to' => [
+            'address' => env('MAIL_TO_ADDRESS', env('ADMIN_EMAIL', 'admin@flophoto.hu')),
+            'name' => env('MAIL_TO_NAME', env('ADMIN_NAME', 'Flophoto Admin')),
+        ],
+    ],
+
 ];
