@@ -88,6 +88,24 @@ export function Footer({
           <p className="text-gray-400 text-sm">
             © {new Date().getFullYear()} {content.brand_text}{content.brand_accent}. {content.copyright}
           </p>
+          <p className="mt-3 text-gray-500 text-sm">
+            A weboldalt{' '}
+            <a
+              href="https://jandldavid.hu"
+              className="text-cyan-400 hover:text-cyan-300 transition-colors"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Jandl Dávid
+            </a>{' '}
+            készítette.{' '}
+            <a
+              href="mailto:info@jandldavid.hu"
+              className="text-cyan-400 hover:text-cyan-300 transition-colors"
+            >
+              info@jandldavid.hu
+            </a>
+          </p>
         </div>
       </div>
     </footer>
