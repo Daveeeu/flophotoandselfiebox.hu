@@ -34,7 +34,7 @@ class SiteContent extends Model
         return [
             'header' => [
                 'brand_text' => 'Flo',
-                'brand_accent' => 'photo',
+                'brand_accent' => 'Photo',
                 'cta_label' => 'Időpontfoglalás',
                 'nav_labels' => [
                     'Főoldal',
@@ -67,11 +67,11 @@ class SiteContent extends Model
                 'secondary_cta_label' => 'Kapcsolat',
             ],
             'seo' => [
-                'meta_title' => 'Flophoto Selfiebox kölcsönzés esküvőre és rendezvényre',
-                'meta_description' => 'Flophoto selfiebox kölcsönzés esküvőre, céges rendezvényre és privát eseményre. Korlátlan nyomtatás, digitális letöltés és profi asszisztencia.',
-                'meta_keywords' => 'selfiebox, selfie box, fotóautomata, fotóbox kölcsönzés, esküvő selfiebox, rendezvény selfiebox, Flophoto',
-                'og_title' => 'Flophoto Selfiebox kölcsönzés',
-                'og_description' => 'Prémium selfiebox szolgáltatás esküvőkre, céges eseményekre és privát rendezvényekre.',
+                'meta_title' => 'Selfiebox kölcsönzés esküvőre és rendezvényre | FloPhoto',
+                'meta_description' => 'FloPhoto selfiebox kölcsönzés esküvőre, céges rendezvényre és privát eseményre Borsod, Szabolcs, Hajdú-Bihar és Heves vármegyében.',
+                'meta_keywords' => 'selfiebox, selfie box, fotóautomata, fotóbox kölcsönzés, esküvő selfiebox, rendezvény selfiebox, FloPhoto, Borsod selfiebox',
+                'og_title' => 'FloPhoto Selfiebox kölcsönzés',
+                'og_description' => 'Prémium selfiebox szolgáltatás esküvőkre, céges eseményekre és privát rendezvényekre Borsod, Szabolcs, Hajdú-Bihar és Heves vármegyében.',
                 'og_image_path' => 'https://images.unsplash.com/photo-1738156684532-b79bfb589344?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzZWxmaWUlMjBwaG90byUyMGJvb3RoJTIwcGFydHklMjBldmVudHxlbnwxfHx8fDE3NzUwMzIzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
                 'og_image_alt' => 'Flophoto selfiebox rendezvényen',
                 'twitter_card' => 'summary_large_image',
@@ -225,7 +225,7 @@ class SiteContent extends Model
                 'phone_label' => 'Telefon',
                 'phone_value' => '+36 70 328 8597',
                 'email_label' => 'Email',
-                'email_value' => 'info@flophoto.hu',
+                'email_value' => 'info@flophotoandselfiebox.hu',
                 'location_label' => 'Kiszállási helyek:',
                 'location_value' => "Borsod-Abaúj-Zemplén vármegye\nSzabolcs-Szatmár-Bereg vármegye\nHajdú-Bihar vármegye\nHeves vármegye",
                 'form' => [
@@ -241,13 +241,13 @@ class SiteContent extends Model
             ],
             'footer' => [
                 'brand_text' => 'Flo',
-                'brand_accent' => 'photo',
+                'brand_accent' => 'Photo',
                 'description' => 'Selfie box szolgáltatás rendezvényekre, profi kiszolgálással és gyors, gördülékeny egyeztetéssel.',
                 'quick_links_title' => 'Gyors linkek',
                 'contact_title' => 'Kapcsolat',
                 'social_title' => 'Kövess minket',
                 'phone' => '+36 70 328 8597',
-                'email' => 'info@flophoto.hu',
+                'email' => 'info@flophotoandselfiebox.hu',
                 'facebook_url' => '#',
                 'instagram_url' => '#',
                 'copyright' => 'Minden jog fenntartva.',
