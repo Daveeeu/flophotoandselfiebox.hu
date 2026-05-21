@@ -19,7 +19,7 @@ class UpdateSiteContentRequest extends FormRequest
             'content.header.brand_text' => ['required', 'string', 'max:80'],
             'content.header.brand_accent' => ['required', 'string', 'max:80'],
             'content.header.cta_label' => ['required', 'string', 'max:120'],
-            'content.header.nav_labels' => ['required', 'array', 'size:7'],
+            'content.header.nav_labels' => ['required', 'array', 'size:8'],
             'content.header.nav_labels.*' => ['required', 'string', 'max:120'],
 
             'content.hero.image_path' => ['nullable', 'string', 'max:2000'],
