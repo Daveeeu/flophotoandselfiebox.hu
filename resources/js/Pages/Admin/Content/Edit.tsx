@@ -13,6 +13,7 @@ type ContentFormData = {
     hero_image: File | null;
     seo_og_image: File | null;
     background_images: Array<File | null>;
+    ai_character_images: Array<File | null>;
     _method: 'put';
 };
 
@@ -21,15 +22,22 @@ export default function EditContent({ content }: EditContentProps) {
         content.backgrounds.items.map(() => false),
     );
     const [backgroundUploadErrors, setBackgroundUploadErrors] = useState<Record<number, string>>({});
+    const [uploadingAiCharacterImages, setUploadingAiCharacterImages] = useState<boolean[]>(
+        content.ai_selfie.characters.map(() => false),
+    );
+    const [aiCharacterUploadErrors, setAiCharacterUploadErrors] = useState<Record<number, string>>({});
 
     const form = useForm<ContentFormData>({
         content,
         hero_image: null,
         seo_og_image: null,
         background_images: content.backgrounds.items.map(() => null),
+        ai_character_images: content.ai_selfie.characters.map(() => null),
         _method: 'put',
     });
     const isUploadingBackgroundImage = uploadingBackgroundImages.some(Boolean);
+    const isUploadingAiCharacterImage = uploadingAiCharacterImages.some(Boolean);
+    const isUploadingMedia = isUploadingBackgroundImage || isUploadingAiCharacterImage;
 
     const updateContent = (path: Array<string | number>, value: unknown) => {
         const next = structuredClone(form.data.content);
@@ -63,6 +71,134 @@ export default function EditContent({ content }: EditContentProps) {
             ...data,
             background_images: next,
         }));
+    };
+
+    const updateAiCharacterImage = (index: number, file: File | null) => {
+        const next = [...form.data.ai_character_images];
+        next[index] = file;
+        form.setData((data) => ({
+            ...data,
+            ai_character_images: next,
+        }));
+    };
+
+    const addAiCharacter = () => {
+        const next = structuredClone(form.data.content);
+        next.ai_selfie.characters.push({
+            label: '',
+            image_path: '',
+            image_url: null,
+        });
+
+        form.setData((data) => ({
+            ...data,
+            content: next,
+            ai_character_images: [...data.ai_character_images, null],
+        }));
+        setUploadingAiCharacterImages((statuses) => [...statuses, false]);
+    };
+
+    const removeAiCharacter = (index: number) => {
+        if (form.data.content.ai_selfie.characters.length <= 1) {
+            return;
+        }
+
+        const next = structuredClone(form.data.content);
+        next.ai_selfie.characters.splice(index, 1);
+
+        form.setData((data) => ({
+            ...data,
+            content: next,
+            ai_character_images: data.ai_character_images.filter((_, itemIndex) => itemIndex !== index),
+        }));
+        setUploadingAiCharacterImages((statuses) =>
+            statuses.filter((_, itemIndex) => itemIndex !== index),
+        );
+        setAiCharacterUploadErrors((errors) =>
+            Object.fromEntries(
+                Object.entries(errors)
+                    .filter(([key]) => Number(key) !== index)
+                    .map(([key, value]) => {
+                        const numericKey = Number(key);
+
+                        return [numericKey > index ? numericKey - 1 : numericKey, value];
+                    }),
+            ),
+        );
+    };
+
+    const updateAiCharacterItemImage = (index: number, path: string, url: string) => {
+        const next = structuredClone(form.data.content);
+
+        next.ai_selfie.characters[index].image_path = path;
+        next.ai_selfie.characters[index].image_url = url;
+
+        form.setData((data) => ({
+            ...data,
+            content: next,
+        }));
+    };
+
+    const uploadAiCharacterImage = async (index: number, file: File | null) => {
+        if (!file) {
+            updateAiCharacterImage(index, null);
+            return;
+        }
+
+        updateAiCharacterImage(index, file);
+        setAiCharacterUploadErrors((errors) => {
+            const next = { ...errors };
+            delete next[index];
+            return next;
+        });
+        setUploadingAiCharacterImages((statuses) => {
+            const next = [...statuses];
+            next[index] = true;
+            return next;
+        });
+
+        const payload = new FormData();
+        payload.append('image', file);
+
+        try {
+            const response = await axios.post<{ path: string; url: string }>(
+                route('admin.content.images.store'),
+                payload,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                },
+            );
+
+            updateAiCharacterItemImage(index, response.data.path, response.data.url);
+            updateAiCharacterImage(index, null);
+        } catch (error) {
+            let message = 'A kép feltöltése nem sikerült. Ellenőrizd a fájlt és próbáld újra.';
+
+            if (axios.isAxiosError(error)) {
+                const validationMessage = error.response?.data?.errors?.image?.[0];
+                const responseMessage = error.response?.data?.message;
+
+                if (typeof validationMessage === 'string') {
+                    message = validationMessage;
+                } else if (typeof responseMessage === 'string') {
+                    message = responseMessage;
+                }
+            }
+
+            setAiCharacterUploadErrors((errors) => ({
+                ...errors,
+                [index]: message,
+            }));
+            updateAiCharacterImage(index, null);
+        } finally {
+            setUploadingAiCharacterImages((statuses) => {
+                const next = [...statuses];
+                next[index] = false;
+                return next;
+            });
+        }
     };
 
     const addBackgroundItem = () => {
@@ -434,6 +570,125 @@ export default function EditContent({ content }: EditContentProps) {
                                                 updateContent(['what', 'features', index, 'description'], value)
                                             }
                                         />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </SectionCard>
+
+                <SectionCard
+                    title="AI Selfie"
+                    description="AI Selfie szekció szövegei és a választható karakterek képei."
+                >
+                    <div className="space-y-5">
+                        <TextField
+                            label="Szekció cím"
+                            value={form.data.content.ai_selfie.title}
+                            onChange={(value) => updateContent(['ai_selfie', 'title'], value)}
+                        />
+                        <TextareaField
+                            label="Fő kiemelt szöveg"
+                            value={form.data.content.ai_selfie.lead}
+                            onChange={(value) => updateContent(['ai_selfie', 'lead'], value)}
+                        />
+                        <TextField
+                            label="Hogyan működik? cím"
+                            value={form.data.content.ai_selfie.how_title}
+                            onChange={(value) => updateContent(['ai_selfie', 'how_title'], value)}
+                        />
+                        <TextareaField
+                            label="Hogyan működik? bekezdések"
+                            value={form.data.content.ai_selfie.how_paragraphs.join('\n\n')}
+                            onChange={(value) =>
+                                updateContent(
+                                    ['ai_selfie', 'how_paragraphs'],
+                                    value
+                                        .split('\n\n')
+                                        .map((item) => item.trim())
+                                        .filter(Boolean),
+                                )
+                            }
+                            hint="Ures sor valasztja el a bekezdeseket."
+                        />
+                        <TextField
+                            label="Karakterek cím"
+                            value={form.data.content.ai_selfie.characters_title}
+                            onChange={(value) =>
+                                updateContent(['ai_selfie', 'characters_title'], value)
+                            }
+                        />
+                        <TextField
+                            label="Karakterek megjegyzés"
+                            value={form.data.content.ai_selfie.characters_note}
+                            onChange={(value) =>
+                                updateContent(['ai_selfie', 'characters_note'], value)
+                            }
+                        />
+                        <TextField
+                            label="Ár megjegyzés"
+                            value={form.data.content.ai_selfie.price_note}
+                            onChange={(value) => updateContent(['ai_selfie', 'price_note'], value)}
+                        />
+
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <p className="text-sm font-medium text-slate-700">
+                                Karakterek ({form.data.content.ai_selfie.characters.length})
+                            </p>
+                            <button
+                                type="button"
+                                className="rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700"
+                                onClick={addAiCharacter}
+                            >
+                                Új karakter
+                            </button>
+                        </div>
+
+                        <div className="grid gap-5 md:grid-cols-2">
+                            {form.data.content.ai_selfie.characters.map((character, index) => (
+                                <div
+                                    key={index}
+                                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                                >
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="text-xs uppercase tracking-[0.28em] text-slate-500">
+                                            Karakter {index + 1}
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeAiCharacter(index)}
+                                            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-700"
+                                        >
+                                            Törlés
+                                        </button>
+                                    </div>
+
+                                    <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_0.9fr]">
+                                        <TextField
+                                            label="Felirat"
+                                            value={character.label}
+                                            onChange={(value) =>
+                                                updateContent(
+                                                    ['ai_selfie', 'characters', index, 'label'],
+                                                    value,
+                                                )
+                                            }
+                                        />
+
+                                        <div className="space-y-2">
+                                            <p className="text-sm font-medium text-slate-700">Kép</p>
+                                            <ImageUploadCard
+                                                label="Karakter kép"
+                                                previewUrl={character.image_url || character.image_path}
+                                                file={form.data.ai_character_images[index]}
+                                                onChange={(file) => uploadAiCharacterImage(index, file)}
+                                            />
+                                            {aiCharacterUploadErrors[index] ? (
+                                                <p className="text-sm text-rose-600">
+                                                    {aiCharacterUploadErrors[index]}
+                                                </p>
+                                            ) : null}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -992,12 +1247,12 @@ export default function EditContent({ content }: EditContentProps) {
                 <div className="flex justify-end">
                     <button
                         type="submit"
-                        disabled={form.processing || isUploadingBackgroundImage}
+                        disabled={form.processing || isUploadingMedia}
                         className="rounded-xl bg-cyan-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {form.processing
                             ? 'Mentés...'
-                            : isUploadingBackgroundImage
+                            : isUploadingMedia
                                 ? 'Kép feltöltése...'
                                 : 'Tartalom mentése'}
                     </button>

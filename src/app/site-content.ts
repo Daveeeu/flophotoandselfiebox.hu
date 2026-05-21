@@ -37,6 +37,20 @@ export type SiteContent = {
       description: string;
     }>;
   };
+  ai_selfie: {
+    title: string;
+    lead: string;
+    how_title: string;
+    how_paragraphs: string[];
+    characters_title: string;
+    characters_note: string;
+    price_note: string;
+    characters: Array<{
+      label: string;
+      image_path: string;
+      image_url?: string | null;
+    }>;
+  };
   gallery: {
     title: string;
     description: string;

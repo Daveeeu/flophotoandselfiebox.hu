@@ -2,6 +2,7 @@ import type { FormEvent } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { WhatIsSelfieBox } from './components/WhatIsSelfieBox';
+import { AiSelfie } from './components/AiSelfie';
 import { Gallery } from './components/Gallery';
 import { Packages } from './components/Packages';
 import { Booking } from './components/Booking';
@@ -60,6 +61,10 @@ export default function App({ galleryImages, siteContent, contact, booking }: Ap
 
         <section id="what">
           <WhatIsSelfieBox content={siteContent.what} />
+        </section>
+
+        <section id="ai-selfie">
+          <AiSelfie content={siteContent.ai_selfie} />
         </section>
 
         <section id="gallery">

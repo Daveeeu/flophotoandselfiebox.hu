@@ -2,6 +2,24 @@ import { Check } from 'lucide-react';
 import { Button } from './ui/button';
 import type { SiteContent } from '../site-content';
 
+function parseHungarianForintAmount(value: string): number | null {
+  const normalized = value.replace(/\s/g, '').replace(/\./g, '').replace(/Ft/i, '').trim();
+  const amount = Number(normalized);
+  return Number.isFinite(amount) ? amount : null;
+}
+
+function formatHungarianForintAmount(amount: number): string {
+  return `${Math.round(amount).toLocaleString('hu-HU')} Ft`;
+}
+
+function withAiSurcharge(price: string): string {
+  const baseAmount = parseHungarianForintAmount(price);
+  if (baseAmount === null) {
+    return `${price} (+30%)`;
+  }
+  return formatHungarianForintAmount(baseAmount * 1.3);
+}
+
 export function Packages({ content }: { content: SiteContent['packages'] }) {
   return (
     <section className="py-20 lg:py-28 bg-white relative overflow-hidden">
@@ -60,6 +78,9 @@ export function Packages({ content }: { content: SiteContent['packages'] }) {
                 >
                   {pkg.price}
                 </div>
+                <p className={`mt-2 text-sm ${pkg.highlighted ? 'text-cyan-100' : 'text-gray-600'}`}>
+                  AI Selfie: {withAiSurcharge(pkg.price)}
+                </p>
               </div>
 
               <ul className="space-y-4 mb-8">
@@ -112,6 +133,9 @@ export function Packages({ content }: { content: SiteContent['packages'] }) {
               </div>
               <p className="text-sm mt-1 text-gray-500">
                 / {content.digital.duration}
+              </p>
+              <p className="text-sm mt-2 text-gray-600">
+                AI Selfie: {withAiSurcharge(content.digital.price)}
               </p>
             </div>
 

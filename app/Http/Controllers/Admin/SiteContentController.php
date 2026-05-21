@@ -64,6 +64,14 @@ class SiteContentController extends Controller
             );
         }
 
+        foreach ($content['ai_selfie']['characters'] as $index => $character) {
+            $content['ai_selfie']['characters'][$index]['image_path'] = $this->resolveImagePath(
+                $request->file("ai_character_images.{$index}"),
+                $character['image_path'] ?? null,
+                data_get($currentContent, "ai_selfie.characters.{$index}.image_path"),
+            );
+        }
+
         $this->deleteRemovedBackgroundImages($currentContent, $content);
 
         $siteContent->update([

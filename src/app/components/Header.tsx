@@ -3,7 +3,7 @@ import { Menu, X } from 'lucide-react';
 import { Button } from './ui/button';
 import type { SiteContent } from '../site-content';
 
-const navHrefs = ['#hero', '#what', '#gallery', '#packages', '#booking', '#backgrounds', '#contact'];
+const navHrefs = ['#hero', '#what', '#ai-selfie', '#gallery', '#packages', '#booking', '#backgrounds', '#contact'];
 
 export function Header({ content }: { content: SiteContent['header'] }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

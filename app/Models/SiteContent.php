@@ -39,6 +39,7 @@ class SiteContent extends Model
                 'nav_labels' => [
                     'Főoldal',
                     'Mi az a Selfiebox?',
+                    'AI Selfie',
                     'Galéria',
                     'Csomagok',
                     'Foglalás',
@@ -96,6 +97,28 @@ class SiteContent extends Model
                     [
                         'title' => 'Egyedi élmény',
                         'description' => 'Egyszerre szórakoztató, spontán és személyes. Nem csak egy fotó készül, hanem egy közös pillanat.',
+                    ],
+                ],
+            ],
+            'ai_selfie' => [
+                'title' => 'AI Selfie',
+                'lead' => 'Emeld új szintre a rendezvényed élményét a legújabb mesterséges intelligencia technológiával felszerelt Selfieboxunkkal!',
+                'how_title' => 'Hogyan működik?',
+                'how_paragraphs' => [
+                    'Felejtsd el a hagyományos, egyszerű fotókat és a zöld háttereket!',
+                    'Nem csak egyszerű fotókat készítünk! Az AI technológia a képeteket egy szempillantás alatt átalakítja: legyetek képregényhősök, utazzatok vissza az időben, vagy kerüljetek egy futurisztikus világba - a lehetőségeknek csak a képzelet szab határt. Dobjátok fel a bulit, és vigyetek haza olyan képeket, amik garantáltan felrobbantják a közösségi médiát!',
+                ],
+                'characters_title' => 'Választható karakterek',
+                'characters_note' => 'A listát folyamatosan bővítjük - kérdezz rá egyedi igényre is.',
+                'price_note' => 'AI Selfie opció választása esetén a csomagár +30% (minden csomagra érvényes).',
+                'characters' => [
+                    [
+                        'label' => 'AI karakter 1',
+                        'image_path' => '',
+                    ],
+                    [
+                        'label' => 'AI karakter 2',
+                        'image_path' => '',
                     ],
                 ],
             ],
@@ -264,6 +287,10 @@ class SiteContent extends Model
             $mergedContent['backgrounds']['items'] = data_get($content, 'backgrounds.items', []);
         }
 
+        if (array_key_exists('characters', data_get($content, 'ai_selfie', []))) {
+            $mergedContent['ai_selfie']['characters'] = data_get($content, 'ai_selfie.characters', []);
+        }
+
         return $mergedContent;
     }
 
@@ -277,6 +304,13 @@ class SiteContent extends Model
             ->map(fn (array $item) => [
                 ...$item,
                 'image_url' => static::resolveImageUrl($item['image_path'] ?? null),
+            ])
+            ->all();
+
+        $content['ai_selfie']['characters'] = collect(data_get($content, 'ai_selfie.characters', []))
+            ->map(fn (array $character) => [
+                ...$character,
+                'image_url' => static::resolveImageUrl($character['image_path'] ?? null),
             ])
             ->all();
 
