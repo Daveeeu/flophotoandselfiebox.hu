@@ -282,6 +282,10 @@ class SiteContent extends Model
     {
         $content = $this->content ?? [];
         $mergedContent = array_replace_recursive(static::defaultContent(), $content);
+        $mergedContent['header']['nav_labels'] = static::normalizeHeaderNavLabels(
+            data_get($mergedContent, 'header.nav_labels', []),
+            data_get(static::defaultContent(), 'header.nav_labels', []),
+        );
 
         if (array_key_exists('items', data_get($content, 'backgrounds', []))) {
             $mergedContent['backgrounds']['items'] = data_get($content, 'backgrounds.items', []);
@@ -333,5 +337,57 @@ class SiteContent extends Model
     public static function isExternalPath(?string $path): bool
     {
         return filled($path) && Str::startsWith($path, ['http://', 'https://']);
+    }
+
+    protected static function normalizeHeaderNavLabels(array $labels, array $defaults): array
+    {
+        if ($labels === [] || $labels === $defaults) {
+            return $defaults;
+        }
+
+        $labels = array_values($labels);
+        $expectedCount = count($defaults);
+
+        if (count($labels) === $expectedCount && in_array($defaults[2], $labels, true)) {
+            return array_slice($labels, 0, $expectedCount);
+        }
+
+        $legacyWithoutAi = [
+            $defaults[0],
+            $defaults[1],
+            $defaults[3],
+            $defaults[4],
+            $defaults[5],
+            $defaults[6],
+            $defaults[7],
+        ];
+
+        if (array_slice($labels, 0, 7) === $legacyWithoutAi) {
+            return [
+                $labels[0],
+                $labels[1],
+                $defaults[2],
+                $labels[2],
+                $labels[3],
+                $labels[4],
+                $labels[5],
+                $labels[6],
+            ];
+        }
+
+        if (count($labels) === 7) {
+            return [
+                $labels[0] ?? $defaults[0],
+                $labels[1] ?? $defaults[1],
+                $defaults[2],
+                $labels[2] ?? $defaults[3],
+                $labels[3] ?? $defaults[4],
+                $labels[4] ?? $defaults[5],
+                $labels[5] ?? $defaults[6],
+                $labels[6] ?? $defaults[7],
+            ];
+        }
+
+        return $defaults;
     }
 }

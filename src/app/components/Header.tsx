@@ -11,7 +11,7 @@ export function Header({ content }: { content: SiteContent['header'] }) {
   const navItems = navHrefs.map((href, index) => ({
     href,
     label: content.nav_labels[index] || '',
-  }));
+  })).filter((item) => item.label.trim().length > 0);
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-white/90 border-b border-white/50 shadow-sm">
@@ -28,7 +28,7 @@ export function Header({ content }: { content: SiteContent['header'] }) {
           <nav className="hidden lg:flex items-center gap-8">
             {navItems.map((item) => (
               <a
-                key={item.label}
+                key={item.href}
                 href={item.href}
                 className="text-gray-700 hover:text-cyan-600 transition-colors !font-medium"
               >
@@ -62,7 +62,7 @@ export function Header({ content }: { content: SiteContent['header'] }) {
             <div className="flex flex-col gap-4">
               {navItems.map((item) => (
                 <a
-                  key={item.label}
+                  key={item.href}
                   href={item.href}
                   className="text-gray-700 hover:text-cyan-600 transition-colors !font-medium py-2"
                   onClick={() => setIsMenuOpen(false)}

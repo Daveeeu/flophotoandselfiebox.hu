@@ -1,7 +1,12 @@
 import { Facebook, Instagram, Mail, Phone } from 'lucide-react';
 import type { SiteContent } from '../site-content';
 
-const quickLinkHrefs = ['#what', '#gallery', '#packages', '#contact'];
+const quickLinksConfig = [
+  { href: '#what', labelIndex: 1 },
+  { href: '#gallery', labelIndex: 3 },
+  { href: '#packages', labelIndex: 4 },
+  { href: '#contact', labelIndex: 7 },
+];
 
 export function Footer({
   content,
@@ -10,9 +15,9 @@ export function Footer({
   content: SiteContent['footer'];
   headerNavLabels: string[];
 }) {
-  const quickLinks = quickLinkHrefs.map((href, index) => ({
+  const quickLinks = quickLinksConfig.map(({ href, labelIndex }) => ({
     href,
-    label: headerNavLabels[index + 1] || '',
+    label: headerNavLabels[labelIndex] || '',
   }));
 
   return (
